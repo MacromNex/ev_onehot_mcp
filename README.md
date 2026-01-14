@@ -40,7 +40,7 @@ python repo/ev_onehot/pred.py example --seq_path example/data.csv
 ## MCP usage
 ### Install `ev+onehot` mcp
 ```shell
-fastmcp install claude-code tool-mcps/ev_onehot_mcp/src/ev_onehot_mcp.py --python tool-mcps/ev_onehot_mcp/env/bin/python
+fastmcp install claude-code tool-mcps/ev_onehot_mcp/src/server.py --python tool-mcps/ev_onehot_mcp/env/bin/python
 ```
 
 ## Call MCP
