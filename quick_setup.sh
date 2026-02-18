@@ -84,10 +84,31 @@ success "Prerequisites check passed"
 echo ""
 echo -e "${BLUE}Step 1: Setting up conda environment${NC}"
 
+# Fast path: use pre-packaged conda env from GitHub Releases
+PACKED_ENV_URL="${PACKED_ENV_URL:-}"
+PACKED_ENV_TAG="${PACKED_ENV_TAG:-envs-v1}"
+PACKED_ENV_BASE="https://github.com/charlesxu90/ProteinMCP/releases/download/${PACKED_ENV_TAG}"
+
 if [ "$SKIP_ENV" = true ]; then
     info "Skipping environment creation (--skip-env)"
 elif [ -d "$ENV_DIR" ] && [ -f "$ENV_DIR/bin/python" ]; then
     info "Environment already exists at: $ENV_DIR"
+elif [ "${USE_PACKED_ENVS:-}" = "1" ] || [ -n "$PACKED_ENV_URL" ]; then
+    # Download and extract pre-packaged conda environment
+    PACKED_ENV_URL="${PACKED_ENV_URL:-${PACKED_ENV_BASE}/ev_onehot_mcp-env.tar.gz}"
+    info "Downloading pre-packaged environment from ${PACKED_ENV_URL}..."
+    mkdir -p "$ENV_DIR"
+    if wget -qO- "$PACKED_ENV_URL" | tar xzf - -C "$ENV_DIR"; then
+        source "$ENV_DIR/bin/activate"
+        conda-unpack 2>/dev/null || true
+        success "Pre-packaged environment ready"
+        SKIP_ENV=true
+    else
+        warn "Failed to download pre-packaged env, falling back to conda create..."
+        rm -rf "$ENV_DIR"
+        info "Creating conda environment with Python ${PYTHON_VERSION}..."
+        $CONDA_CMD create -p "$ENV_DIR" python=${PYTHON_VERSION} -y
+    fi
 else
     info "Creating conda environment with Python ${PYTHON_VERSION}..."
     $CONDA_CMD create -p "$ENV_DIR" python=${PYTHON_VERSION} -y
